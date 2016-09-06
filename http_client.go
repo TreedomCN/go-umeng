@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/glog"
 	"io/ioutil"
 	"net/http"
 )
@@ -21,7 +22,6 @@ var (
 	AndroidAppMasterSecret string
 	IOSAppMasterSecret     string
 	DataByte               []byte
-	platform               Platform
 )
 
 type Platform int32
@@ -204,6 +204,7 @@ type IOSAps struct {
 }
 */
 type Data struct {
+	Platform       Platform    `json:"-"`
 	AppKey         string      `json:"appkey,omitempty"`
 	TimeStamp      int64       `json:"timestamp,omitempty"`
 	TaskId         string      `json:"task_id,omitempty"`
@@ -227,12 +228,12 @@ type Result struct {
 }
 
 func NewData(pf Platform) (data *Data) {
-	platform = pf
 	data = new(Data)
-	if pf == AppAndroid {
+	data.Platform = pf
+	if data.Platform == AppAndroid {
 		data.AppKey = AndroidAppKey
 	}
-	if pf == AppIOS {
+	if data.Platform == AppIOS {
 		data.AppKey = IOSAppKey
 	}
 	return
@@ -243,7 +244,7 @@ func (data *Data) SetPolicy(policy Policy) {
 }
 
 func (data *Data) Push(body, aps, policy interface{}, extras map[string]string) (result Result) {
-	if platform == AppAndroid {
+	if data.Platform == AppAndroid {
 		payload := &AndroidPayload{}
 		if v, ok := body.(AndroidBody); ok {
 			if v.DisplayType == "message" && len(v.Custom) == 0 {
@@ -256,7 +257,7 @@ func (data *Data) Push(body, aps, policy interface{}, extras map[string]string) 
 			payload.Extra = extras
 		}
 		data.Payload = payload
-	} else if platform == AppIOS {
+	} else if data.Platform == AppIOS {
 		payload := make(IOSPayload, 0)
 		payload["aps"] = aps
 		if len(extras) > 0 {
@@ -294,9 +295,9 @@ func (data *Data) Sign(reqPath string) (api string) {
 	DataByte, _ = json.Marshal(data)
 	jsonStr := string(DataByte)
 	sign := ""
-	if platform == AppAndroid {
+	if data.Platform == AppAndroid {
 		sign = Md5(fmt.Sprintf("POST%s%s%s%s", Host, reqPath, jsonStr, AndroidAppMasterSecret))
-	} else if platform == AppIOS {
+	} else if data.Platform == AppIOS {
 		sign = Md5(fmt.Sprintf("POST%s%s%s%s", Host, reqPath, jsonStr, IOSAppMasterSecret))
 	}
 	api = fmt.Sprintf("%s%s?sign=%s", Host, reqPath, sign)
