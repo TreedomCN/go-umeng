@@ -1,8 +1,8 @@
 package umeng_test
 
 import (
-	"github.com/netroby/umeng-go-sdk"
 	"testing"
+	"github.com/busyfree/go-umeng"
 )
 
 var data *umeng.Data
