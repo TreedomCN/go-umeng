@@ -113,6 +113,7 @@ type AndroidBody struct {
 	DisplayType string `json:"-"`
 	Ticker      string `json:"ticker,omitempty"`
 	Title       string `json:"title,omitempty"`
+	Text        string `json:"text,omitempty"`
 	Icon        string `json:"icon,omitempty"`
 	LargeIcon   string `json:"largeIcon,omitempty"`
 	Img         string `json:"img,omitempty"`
